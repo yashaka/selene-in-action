@@ -1,0 +1,3 @@
+pytest
+selenium==4.5.0
+selene>=2.0.b17
