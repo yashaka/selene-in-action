@@ -16,59 +16,35 @@ from selenium.webdriver import ActionChains, Keys
 
 def test_add_todos_and_complete_one():
 
-    # browser.config.hold_browser_open = True
-    browser.config.window_width = '1024'
-    browser.config.window_height = '768'
-    browser.config.timeout = 6.0
-    '''
-    browser.config.browser_name = 'firefox'
-    
-    # to make all clicks be performed via JavaScript 
-    # * for cases when normal clicks does not work 
-    browser.config.click_by_js = True  
-    # ... but probably you don't want to «work around» all clicks.
-    # to work-around just for specific elements you can do
-    browser.element('#send').perform(command.js.click)
-    # or if you need to repeat click via js a more than one time on same element:
-    send = browser.element('#send').with_(click_by_js=True)
-    send.click()
-    ...
-    send.click()
-    # .with_(...) - is a special command that can be called on any Selene Entity
-    # where Selene Entity is either:
-    # * browser, 
-    # * element, like browser.element(selector), browser.all(selector).first, etc.
-    # * or collection, like browser.all(selector), browser.all(selector).by(condition), etc.
-    # so you can call .with_ on any entity 
-    # to customize any browser.config.* option 
-    # for specific entity only, for example:
-    # * browser.config.timeout = 10.0 will set global timeout to 10.0
-    # but
-    # * browser.all('.slow-list-item').with_(timeout=10.0) 
-    #   will set such big timeout only for the specialized collection of slow list items
-    
-    # to make all type command calls to be performed via JavaScript 
-    # ... for cases when normal clicks does not work 
-    # ... or to speed up test execution (by faster typing)
-    browser.config.type_by_js = True
-    
-    # setting driver instance manually for extra browser customization:
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.chrome.service import Service as ChromeService
-    from webdriver_manager.chrome import ChromeDriverManager
-    chrome_options = Options()
-    chrome_options.headless = True  # ... like headless mode
-    browser.config.driver = webdriver.Chrome(
-        service=ChromeService(ChromeDriverManager().install()), options=chrome_options
-    )
-    # not available in selene ~ 2.0.0b17, but will be added soon:
-    browser.config.desired_capabilities = chrome_options
-    '''
-
-    browser.open('https://todomvc.com/examples/emberjs/')
+    browser.open('/')
     browser.should(have.title_containing('TodoMVC'))
     '''
+    # .should(condition) is a Selene's version of «explicit wait» that is mainly used as «waiting assertion»
+    # If condition passed to it – is matched – the should command PASSES 
+    # ELSE – the should command raise an Error i.e. FAILS
+    #        if during browser.config.timeout period of time the condition still is not matched
+    # Hence, should – always waits by config.timeout till condition passes, and if not – raise an Error
+    # .should has the following siblings with following differences:
+    # * .wait_until(condition), 
+    #   – that has same behavior but instead of raising an Error once failed to match – returns False
+    #     i.e. it also waits like .should but in all scenarios will not fail the test
+    # * .matching(condition)
+    #   - same as .wait_until but does not wait,
+    #     i.e. checks the condition and returns True or False correspondingly
+    # you might need .wait_until or .matching to implement some branching logic in a test
+    # as some workaround (because branching is bad practice in Tests Code)
+    # Example:
+    if browser.matching(have.no.title('TodoMvc')):
+        print('Developers went crazy again and screwed up my favorite app title :`(')
+    
+    if browser.wait_until(have.title('TodoMvc')):
+        print('Yahoo!!! Devs left my day shiny today, I can relax watching my favourite app title')
+    # More useful example:
+    if browser.element(
+        '#crazy-alert-that-appears-sometimes-and-sometimes-not'
+    ).wait_until(be.visible):
+        browser.element('#close-crazy-alert').click()
+    
     # example of running any custom JavaScript in browser
     browser.execute_script('document.querySelector("#new-todo").remove()') # for stupid reason:)
     # ... but sometimes you will need to remove something «more important» :D
@@ -105,20 +81,54 @@ def test_add_todos_and_complete_one():
     # css selectors are the simplest:
     browser.element('#new-todo').type('a.').press_enter()
     # selenium style of locators:
+    from selenium.webdriver.common.by import By
+
     new_todo_locator = By.CSS_SELECTOR, '#new-todo'
     browser.element(new_todo_locator).type('b.').press_enter()
     # but Selene has a shortcut for such «tuple-like locator»
     browser.element(by.id('new-todo')).type('c.').press_enter()
     # xpath also works:
     browser.element('//*[@id="new-todo"]').type('d.').press_enter()
-    
+
     # Sometimes you need to simulate something not ordinary with Selenium's ActionChains
     from selenium.webdriver import ActionChains, Keys
+
     browser.element('#new-todo').type('originally typed text...')
     actions = ActionChains(browser.driver)
     actions.key_down(Keys.COMMAND).send_keys('a').key_up(Keys.COMMAND).perform()
-    browser.element('#new-todo').type('this task will overwrite original')
-    
+    # (use Keys.CONTROL for windows,
+    # google for receipt on how to make the code a crossplatform;))
+    #
+    # ... It's interesting though, that you can do same without actions...
+    # simply by typing:
+    browser.element('#new-todo').type(Keys.COMMAND + 'a')
+    # just the Keys.COMMAND will remain «not released»,
+    # but you can simulate «release everything» by Keys.NULL:
+    browser.element('#new-todo').type(Keys.COMMAND + 'a' + Keys.NULL)
+    # Hence, if you need to rewrite previous test by simulating «ctrl/command + a»
+    # you can do:
+    browser.element('#new-todo').type(
+        Keys.COMMAND + 'a' + Keys.NULL + 'this task will overwrite original'
+    )
+    # or same but passing a few parameters at once:
+    browser.element('#new-todo').send_keys(
+        Keys.COMMAND + 'a', Keys.NULL, 'this task will overwrite original'
+    )
+    # or formatted in a more readable way:
+    release_keys = Keys.NULL
+    browser.element('#new-todo').send_keys(
+        Keys.COMMAND + 'a',
+        release_keys,
+        'this task will overwrite original',
+    )
+
+    # .send_keys(*values) – is kind of «low-level typing simulation»,
+    # that allows to provide a few «values» separated by comma
+    # .send_keys is also a good candidate to use to upload a file:
+    browser.element('input[type=file]').send_keys('/Users/yashaka/avatar.png')
+    # 'input[type=file]' might be not the best selector, probably you'll have something like:
+    browser.element('#fild-upload').send_keys('/Users/your/avatar.png')
+
     # now let's check assertions...
     # given...
     browser.open('https://todomvc.com/examples/emberjs/')
@@ -136,14 +146,14 @@ def test_add_todos_and_complete_one():
     # Remember, in the End to End testing of already pretty slow modern web applications,
     # we value stability more than speed of execution.
     # And yet you can do it with same speed as «assert ...» version
-    browser.element('#todo-list>li').should(have.text('foo').and_(have.text('kuka'))
+    browser.element('#todo-list>li').should(have.text('foo').and_(have.text('kuka')))
     # – All this is much more stable, because .should knows how to wait till exact needed text appears
     # ... and you never know when your app will load longer than your script executes the code
-    
-    # Yet, listen... even 
+
+    # Yet, listen... even
     browser.element('#todo-list>li').should(have.text('foo'))
-    # – is not the best option that we can use to assert todos that we created in the test... 
-    # – much more efficient would be ... 
+    # – is not the best option that we can use to assert todos that we created in the test...
+    # – much more efficient would be ...
     '''
     browser.all('#todo-list>li').should(have.exact_texts('a.', 'b.', 'c.', 'd.'))
     '''
