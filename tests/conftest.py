@@ -5,17 +5,19 @@ import os
 
 @pytest.fixture(scope='function', autouse=True)
 def browser_management():
-
-    # browser.config.hold_browser_open = True
     browser.config.base_url = os.getenv(
         'selene.base_url', 'https://todomvc.com/examples/emberjs'
     )
-    browser.config.window_width = '1024'
-    browser.config.window_height = '768'
-    browser.config.timeout = 6.0
-    '''
-    browser.config.browser_name = 'firefox'
+    browser.config.browser_name = os.getenv('browser_name', 'chrome')
+    browser.config.hold_browser_open = (
+        os.getenv('hold_browser_open', 'false').lower() == 'true'
+    )
+    browser.config.window_width = os.getenv('window_width', '1024')
+    browser.config.window_height = os.getenv('window_height', '768')
+    browser.config.timeout = float(os.getenv('timeout', '3.0'))
 
+    '''
+    # Other Examples 
     # to make all clicks be performed via JavaScript 
     # * for cases when normal clicks does not work 
     browser.config.click_by_js = True  
@@ -55,8 +57,6 @@ def browser_management():
     browser.config.driver = webdriver.Chrome(
         service=ChromeService(ChromeDriverManager().install()), options=chrome_options
     )
-    # not available in selene ~ 2.0.0b17, but will be added soon:
-    browser.config.desired_capabilities = chrome_options
     '''
 
     yield
