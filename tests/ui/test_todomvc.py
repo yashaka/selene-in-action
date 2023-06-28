@@ -9,7 +9,7 @@ def test_add_todos_and_complete_one():
     browser.element('#new-todo').type('b.').press_enter()
     browser.element('#new-todo').type('c.').press_enter()
     browser.element('#new-todo').type('d.').press_enter()
-    browser.all('#todo-list>li').should(have.exact_texts('a.', 'b.', 'c.', 'd.'))
+    browser.all('#todo-list>li').should(have.exact_texts('a', 'b.', 'c.', 'd.'))
 
     browser.all('#todo-list>li').element_by(have.exact_text('b.')).element(
         '.toggle'

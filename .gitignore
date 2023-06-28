@@ -29,3 +29,7 @@ __pycache__/
 # Environments
 .venv*
 venv*/
+
+# env files
+.env
+.env.local
