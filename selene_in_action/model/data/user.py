@@ -11,7 +11,7 @@ class User(pydantic.BaseModel):
         >>> import requests
         >>> from selene_in_action.model.data.user import User
         >>> response = requests.get('https://reqres.in/api/users/2')
-        >>> user = User(**response.json().get('data')
+        >>> user = User(**response.json().get('data'))
     """
 
     id: int
