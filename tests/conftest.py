@@ -6,7 +6,7 @@ import os
 @pytest.fixture(scope='function', autouse=True)
 def browser_management():
     browser.config.base_url = os.getenv(
-        'selene.base_url', 'https://todomvc.com/examples/emberjs'
+        'base_url', 'https://www.wikipedia.org'
     )
     browser.config.driver_name = os.getenv('driver_name', 'chrome')
     browser.config.hold_driver_at_exit = (
