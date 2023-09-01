@@ -1,3 +1,4 @@
 pytest
 allure-pytest
-selene>=2.0.0rc2
+selene>=2.0.0rc4
+Appium-Python-Client

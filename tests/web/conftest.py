@@ -9,6 +9,10 @@ def browser_management():
         'base_url', 'https://www.wikipedia.org'
     )
     browser.config.driver_name = os.getenv('driver_name', 'chrome')
+    # from selenium import webdriver
+    # chrome_options = webdriver.ChromeOptions()
+    # chrome_options.add_argument('--headless')
+    # browser.config.driver_options = chrome_options
     browser.config.hold_driver_at_exit = (
         os.getenv('hold_driver_at_exit', 'false').lower() == 'true'
     )
@@ -18,4 +22,4 @@ def browser_management():
 
     yield
 
-    ...
+    browser.quit()
