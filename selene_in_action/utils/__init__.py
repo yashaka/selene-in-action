@@ -1,1 +1,1 @@
-from . import allure
+from . import allure, file
